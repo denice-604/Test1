@@ -1,0 +1,42 @@
+create database Test
+
+CREATE TABLE Stroki (
+RandomDate DATE,
+LatinString NVARCHAR(11),
+CyrillicString NVARCHAR(11),
+IntegerNumber INT,
+DoubleNumber DECIMAL(18, 8)
+);
+
+select * from Stroki
+
+
+DELETE from Stroki
+
+CREATE PROCEDURE CalculateSumAndMedian
+AS
+BEGIN
+    DECLARE @SumBigInt BIGINT;
+    DECLARE @MedianDecimal DECIMAL(18, 8);
+
+    -- Вычисляем сумму всех целых чисел
+    SELECT @SumBigInt = SUM(CONVERT(BIGINT, IntegerNumber)) FROM Stroki;
+
+    -- Вычисляем медиану всех дробных чисел
+    WITH Ordered AS (
+        SELECT ROW_NUMBER() OVER (ORDER BY DoubleNumber) AS RowNum,
+               COUNT(*) OVER () AS TotalCount,
+               DoubleNumber
+        FROM Stroki
+    )
+
+	SELECT     @MedianDecimal = DoubleNumber FROM Ordered
+	where TotalCount/2 = RowNum
+
+    -- Вывод результатов
+    SELECT @SumBigInt AS SumOfIntegers, @MedianDecimal AS MedianOfDoubles;
+END;
+
+drop procedure [CalculateSumAndMedian]
+
+exec CalculateSumAndMedian
